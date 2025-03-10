@@ -1128,10 +1128,24 @@ with tab5:
             user_answer = st.radio("Select your answer:", current_q['options'], key=f"q{st.session_state.current_question}")
             selected_index = current_q['options'].index(user_answer)
             
-            if st.button("Submit Answer", key=f"submit_{st.session_state.current_question}"):
+            # Create columns for the answer submission and feedback
+            col1, col2 = st.columns([1, 2])
+            
+            with col1:
+                answer_submitted = st.button("Submit Answer", key=f"submit_{st.session_state.current_question}")
+            
+            # Create a variable to store if we've shown an answer
+            if 'answer_shown' not in st.session_state:
+                st.session_state.answer_shown = False
+                
+            if answer_submitted or st.session_state.answer_shown:
+                st.session_state.answer_shown = True
+                
                 if selected_index == current_q['correct']:
                     st.success("✅ Correct!")
-                    st.session_state.quiz_score += 1
+                    if not 'question_scored' in st.session_state or not st.session_state.question_scored:
+                        st.session_state.quiz_score += 1
+                        st.session_state.question_scored = True
                 else:
                     st.error("❌ Incorrect")
                     
@@ -1140,7 +1154,9 @@ with tab5:
                 
                 if st.button("Next Question", key=f"next_{st.session_state.current_question}"):
                     st.session_state.current_question += 1
-                    st.experimental_rerun()
+                    st.session_state.answer_shown = False
+                    st.session_state.question_scored = False
+                    st.rerun()
             
         else:
             # Quiz completed
@@ -1160,7 +1176,7 @@ with tab5:
                 st.session_state.quiz_score = 0
                 st.session_state.questions_answered = 0
                 st.session_state.current_question = 0
-                st.experimental_rerun()
+                st.rerun()
 
 # Modern UI-style disclaimer (Bootstrap-like "alert-danger")
 st.markdown("""
